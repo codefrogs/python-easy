@@ -15,9 +15,7 @@ class PrimeClient:
     def run(self):
         self.setup_socket()
         self.connect_to_server()        
-
         self.get_primes()
-
         self.clean_up()
 
     def setup_socket(self):
