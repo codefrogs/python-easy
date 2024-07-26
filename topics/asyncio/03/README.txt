@@ -1,3 +1,3 @@
 README.txt
 
-Here we try to solve the blocking problem but configuring the sockets to be non-blocking.
+Here we try to solve the blocking problem by configuring the sockets to be non-blocking.
