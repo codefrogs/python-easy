@@ -37,7 +37,6 @@ class PrimeServer:
         self.socket = None
         self.conn = None
         self.state = ServerState.NULL_STATE
-        self.event_queue = []
         self.prime_calculator = PrimeCalculator()
 
     def run(self):

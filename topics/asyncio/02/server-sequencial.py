@@ -36,7 +36,6 @@ class PrimeServer:
         self.current_client = None
         self.connections = [] # Holds the connections
         self.state = ServerState.NULL_STATE
-        self.event_queue = []
         self.prime_calculator = PrimeCalculator()        
 
     def run(self):
