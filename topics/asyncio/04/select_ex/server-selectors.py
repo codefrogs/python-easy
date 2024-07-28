@@ -32,7 +32,7 @@ class ServerSelect:
         self.setup_socket()
         self.setup_event_monitor()
         
-        print("Listening (15s)...")
+        print(f"Listening ({self.LISTEN_TIMEOUT}s)...")
         sel_event_list: FileObjectInfoList = self.event_monitor.select(timeout=self.LISTEN_TIMEOUT) # blocking
         
         for selector_key, events in sel_event_list:
