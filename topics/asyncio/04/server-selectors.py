@@ -30,7 +30,7 @@ class ServerState(Enum):
 class PrimeServer:
     """Primer number server"""
 
-    LISTEN_TIMEOUT = 1 
+    LISTEN_TIMEOUT = 1 # If we use '0' here, we'll be maxing out the CPU again!
     BUFFER_LEN = 1024
     PORT_NUM_INDEX = 1
     SELECT_TIMEOUT = 0 # => Non-blocking
@@ -46,46 +46,26 @@ class PrimeServer:
         self.event_monitor = selectors.DefaultSelector()
         
     def run(self):
+        self.init()
 
         while (self.state != ServerState.SHUTDOWN_STATE):            
             self.run_processes()
             print()
 
-    def run_processes(self):
-        self.run_prime_search()
-        self.run_next_process()        
-
-    def run_prime_search(self):
-        print("Finding next prime..", end="")
-        self.prime_calculator.find_next()
-        #print("Done.")
-        
-    def run_next_process(self):        
-        if (self.state == ServerState.NULL_STATE):
-            self.init()
-
-        elif (self.state == ServerState.LISTENING_STATE):            
-            self.listen_for_connection()        
-
-        elif (self.state == ServerState.SHUTDOWN_STATE):
-            print("Shutting down...")
-            pass  # No longer processing anything!
-
-        else:
-            print("Unknown state!", self.state)        
+        print("Shutting down...")
 
     def init(self):
         print("init...", end="")
-        self.create_socket()
-        self.setup_socket()
+        self.create_server_socket()
+        self.setup_server_socket()
         self.setup_event_monitor()
         self.update_state(ServerEvent.INITIALISED_EVT)
         print("Done")
 
-    def create_socket(self):
+    def create_server_socket(self):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def setup_socket(self):
+    def setup_server_socket(self):
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server_socket.bind((self.HOST, self.PORT))
         self.server_socket.setblocking(False)
@@ -102,20 +82,44 @@ class PrimeServer:
         elif (event == ServerEvent.SHUTDOWN_EVT):
             self.state = ServerState.SHUTDOWN_STATE
 
-    def listen_for_connection(self):
+    def run_processes(self):
+        self.run_prime_search()
+        self.run_networking()
+
+    def run_prime_search(self):
+        print("Finding next prime..", end="")
+        self.prime_calculator.find_next()
+
+    def run_networking(self):
         print("Listening (blocking)..", end="", flush=True)
         
-        # Enable listening
-        sel_event_list: FileObjectInfoList = self.event_monitor.select(timeout=self.LISTEN_TIMEOUT) # blocking
+        # Listen
+        socket_events = self.get_socket_events() # blocking
 
-        if len(sel_event_list) !=0:
-            
-            for selector_key, events in sel_event_list:
-                if selector_key.fileobj == self.server_socket: # If this server's socket
-                    self.add_new_client()
-                    self.show_new_client(selector_key.fileobj)
-                else:
-                    self.serve_client(selector_key.fileobj) 
+        if socket_events:
+            for selector_key, _ in socket_events:
+                self.process_connection_event(selector_key.fileobj) 
+
+    def get_socket_events(self) -> FileObjectInfoList:
+        return self.event_monitor.select(timeout=self.LISTEN_TIMEOUT)
+
+    def process_connection_event(self, connection):
+        if connection == self.server_socket: # If this server's socket
+            self.process_server_event(connection)
+        else:
+            self.process_client_event(connection)
+
+    def process_server_event(self, connection):
+        self.add_new_client()
+        self.show_new_client(connection)
+
+    def process_client_event(self, connection):
+        self.set_current_client(connection)
+        self.show_active_client()
+        self.process_client_data(self.get_client_data())
+
+    def set_current_client(self, conn: socket):
+        self.current_client = conn
 
     def add_new_client(self):
         connection, addr = self.server_socket.accept()
@@ -129,26 +133,20 @@ class PrimeServer:
     def show_connection(self, addr):
         print('Connected by', addr)
 
-    def serve_client(self, connection):
-        client_port = self.get_port_number(connection)
+    def process_client_data(self, data):
+        if not data:
+            self.remove_current_client()
+        else:
+            self.process_data(data)
+
+    def show_active_client(self):
+        client_port = self.get_port_number(self.current_client)
         print(f"Serving client({client_port}).", end="")
-        try:
-            self.current_client = connection
-
-            data = self.get_data()
-            if not data:
-                self.remove_current_client()
-            else:
-                self.process_data(data)
-
-        except BlockingIOError:
-            # Just ignore failure to read
-            pass
 
     def get_port_number(self, connection):
         return connection.getpeername()[self.PORT_NUM_INDEX]
 
-    def get_data(self):
+    def get_client_data(self):
         return self.current_client.recv(self.BUFFER_LEN)
 
     def remove_current_client(self):
