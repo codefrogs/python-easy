@@ -13,14 +13,11 @@ SelectorEvents = int  # e.g. EVENT_READ, EVENT_WRITE
 FileObjectInfo = tuple[selectors.SelectorKey, SelectorEvents]
 FileObjectInfoList = list[FileObjectInfo]
 
-
 class ServerEvent(Enum):
     INITIALISED_EVT = auto()
-    LOST_CLIENT_EVT = auto()    
     SHUTDOWN_EVT    = auto()
 
 class Command(Enum):
-    NULL_CMD      = auto()
     SHUTDOWN_CMD  = auto()
     GET_PRIME_CMD = auto()
     UNKNOWN_CMD   = auto()
@@ -41,9 +38,9 @@ class PrimeServer:
     def __init__(self):
         self.HOST = ''     # Symbolic name meaning all available interfaces
         self.PORT = 50007  # Arbitrary non-privileged port
-        self.socket = None
-        self.current_client = None
-        self.connections = [] # Holds the connections
+        self.server_socket: socket.socket = None
+        self.current_client: socket.socket = None
+        self.connections: list[socket.socket] = [] # Holds the connections
         self.state = ServerState.NULL_STATE        
         self.prime_calculator = PrimeCalculator()
         self.event_monitor = selectors.DefaultSelector()
@@ -86,16 +83,16 @@ class PrimeServer:
         print("Done")
 
     def create_socket(self):
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def setup_socket(self):
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.bind((self.HOST, self.PORT))    
-        self.socket.setblocking(False)
-        self.socket.listen()
+        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.server_socket.bind((self.HOST, self.PORT))
+        self.server_socket.setblocking(False)
+        self.server_socket.listen()
 
     def setup_event_monitor(self):
-        self.event_monitor.register(self.socket, selectors.EVENT_READ)
+        self.event_monitor.register(self.server_socket, selectors.EVENT_READ)
 
     def update_state(self, event: ServerEvent):
 
@@ -114,28 +111,33 @@ class PrimeServer:
         if len(sel_event_list) !=0:
             
             for selector_key, events in sel_event_list:
-                if selector_key.fileobj == self.socket: # If this server's socket
-                    connection, addr = self.socket.accept() # blocks
-                    connection.setblocking(False)
-                    self.event_monitor.register(connection, selectors.EVENT_READ)  
-                    self.connections.append(connection)
-                    self.show_connection(selector_key.fileobj.getsockname())
+                if selector_key.fileobj == self.server_socket: # If this server's socket
+                    self.add_new_client()
+                    self.show_new_client(selector_key.fileobj)
                 else:
-                    self.serve_client(selector_key.fileobj)            
+                    self.serve_client(selector_key.fileobj) 
+
+    def add_new_client(self):
+        connection, addr = self.server_socket.accept()
+        connection.setblocking(False)
+        self.event_monitor.register(connection, selectors.EVENT_READ)
+        self.connections.append(connection)
+
+    def show_new_client(self, connection):
+        self.show_connection(connection.getsockname())
 
     def show_connection(self, addr):
         print('Connected by', addr)
 
-    def serve_client(self, connection): 
-        index = connection.getpeername()[self.PORT_NUM_INDEX]
-        print(f"Serving client({index}).", end="")
+    def serve_client(self, connection):
+        client_port = self.get_port_number(connection)
+        print(f"Serving client({client_port}).", end="")
         try:
             self.current_client = connection
 
             data = self.get_data()
             if not data:
-                print("No data")
-                self.remove_client()
+                self.remove_current_client()
             else:
                 self.process_data(data)
 
@@ -143,13 +145,15 @@ class PrimeServer:
             # Just ignore failure to read
             pass
 
-        #print("Done")
+    def get_port_number(self, connection):
+        return connection.getpeername()[self.PORT_NUM_INDEX]
 
     def get_data(self):
         return self.current_client.recv(self.BUFFER_LEN)
 
-    def remove_client(self):
-        print(f"Client lost: {self.current_client}")      
+    def remove_current_client(self):
+        # client_port = self.get_port_number(self.current_client)
+        # print(f"Client lost: {self.current_client}")
         self.current_client.close()
         self.connections.remove(self.current_client)
 
@@ -184,7 +188,7 @@ class PrimeServer:
         self.update_state(ServerEvent.SHUTDOWN_EVT)
 
     def close_socket(self):
-        self.socket.close()
+        self.server_socket.close()
 
     def send_client_prime(self):
         val = self.prime_calculator.get_latest()
