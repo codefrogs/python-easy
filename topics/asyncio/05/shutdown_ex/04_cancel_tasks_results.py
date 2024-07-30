@@ -43,10 +43,10 @@ async def main():
     print("Tasks cancelled.")    
 
     result = await task1
-    print(f"Result(+): {result}\n") #  We never get here!
+    print(f"Result(+): {result}") #  We never get here!
     
     result = await task2            #  We never get here!
-    print(f"Result(*): {result}\n") #  We never get here!
+    print(f"Result(*): {result}") #  We never get here!
 
     await do_calc("@")              #  We never get here!
     print("*** Finished ***")       #  We never get here!

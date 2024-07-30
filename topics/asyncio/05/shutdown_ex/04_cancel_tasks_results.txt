@@ -1,0 +1,7 @@
+In this script we cancel all our tasks.
+When we await on a task, an exception is thrown: asyncio.exceptions.CancelledError
+
+When we wait on a task that has thrown an exception, it throws the exception!
+
+So, now let's try to capture it in 'do_calc'.
+
