@@ -3,7 +3,6 @@
 # Async prime server example:
 # Initial attempt at adding asyncio.
 #
-import logging
 import socket
 import asyncio
 from prime_calculator import PrimeCalculator
@@ -108,17 +107,12 @@ class PrimeServerAsync:
         connection.setblocking(False)
 
     async def process_client(self, connection):
-        try:
-            is_ok = True
-            while is_ok:
-                data = await self.get_client_data(connection)
-                is_ok = await self.process_client_data(connection, data)
+        is_ok = True
+        while is_ok:
+            data = await self.get_client_data(connection)
+            is_ok = await self.process_client_data(connection, data)
 
-        except Exception as e:
-            logging.exception(e)
-
-        finally:
-            connection.close()
+        connection.close()
 
     async def get_client_data(self, connection):
         return await self.event_loop.sock_recv(connection, self.BUFFER_LEN)

@@ -15,5 +15,11 @@ or call its methods."
 But we are just exploring and evolving our server here, and this should help
 our understanding.
 
-But we see one problem. The CPU task holds up the event loop. It isn't a good
+But we see two problems:
+
+1. The CPU task holds up the event loop. It isn't a good
 fit as it doesn't have any IO-bound calls.
+
+2. Shutdown is not well handled if there are any exceptions.
+
+see also: https://docs.python.org/3/library/asyncio-task.html#task-cancellation
