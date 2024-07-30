@@ -23,9 +23,9 @@ class Command(Enum):
     UNKNOWN_CMD   = auto()
 
 class ServerState(Enum):
-    NULL_STATE             = auto()
-    LISTENING_STATE        = auto()    
-    SHUTDOWN_STATE         = auto()
+    NULL_STATE     = auto()
+    RUNNING_STATE  = auto()    
+    SHUTDOWN_STATE = auto()
 
 class PrimeServer:
     """Primer number server"""
@@ -77,7 +77,7 @@ class PrimeServer:
     def update_state(self, event: ServerEvent):
 
         if (event == ServerEvent.INITIALISED_EVT):
-            self.state = ServerState.LISTENING_STATE
+            self.state = ServerState.RUNNING_STATE
 
         elif (event == ServerEvent.SHUTDOWN_EVT):
             self.state = ServerState.SHUTDOWN_STATE
@@ -105,15 +105,15 @@ class PrimeServer:
 
     def process_connection_event(self, connection):
         if connection == self.server_socket: # If this server's socket
-            self.process_server_event(connection)
+            self.process_new_client(connection)
         else:
-            self.process_client_event(connection)
+            self.process_client(connection)
 
-    def process_server_event(self, connection):
+    def process_new_client(self, connection):
         self.add_new_client()
         self.show_new_client(connection)
 
-    def process_client_event(self, connection):
+    def process_client(self, connection):
         self.set_current_client(connection)
         self.show_active_client()
         self.process_client_data(self.get_client_data())
