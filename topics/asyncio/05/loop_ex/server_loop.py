@@ -41,7 +41,7 @@ class ServerLoop:
         self.server_socket.listen()
 
     async def run_networking(self):
-        print(f"Listening ...")
+        print("Listening ...")
         self.current_client, addr = await self.event_loop.sock_accept(self.server_socket)
         self.current_client.setblocking(False)
         print("Client connected at: ", addr)
