@@ -3,7 +3,7 @@
 # Async prime server example:
 # Initial attempt at adding asyncio.
 #
-
+import logging
 import socket
 import asyncio
 from prime_calculator import PrimeCalculator
@@ -40,7 +40,6 @@ class PrimeServerAsync:
         self.PORT = 50007  # Arbitrary non-privileged port
         self.server_socket: socket.socket = None
         self.current_client: socket.socket = None
-        self.connections: list[socket.socket] = []  # Holds the connections
         self.state = ServerState.NULL_STATE
         self.prime_calculator = PrimeCalculator()
         self.event_loop: asyncio.AbstractEventLoop = None
@@ -107,13 +106,19 @@ class PrimeServerAsync:
 
     def add_new_client(self, connection):
         connection.setblocking(False)
-        self.connections.append(connection)
 
     async def process_client(self, connection):
-        is_ok = True
-        while is_ok:
-            data = await self.get_client_data(connection)
-            is_ok = await self.process_client_data(connection, data)
+        try:
+            is_ok = True
+            while is_ok:
+                data = await self.get_client_data(connection)
+                is_ok = await self.process_client_data(connection, data)
+
+        except Exception as e:
+            logging.exception(e)
+
+        finally:
+            connection.close()
 
     async def get_client_data(self, connection):
         return await self.event_loop.sock_recv(connection, self.BUFFER_LEN)
@@ -133,7 +138,6 @@ class PrimeServerAsync:
     def remove_client(self, connection):
         client_port = self.get_port_number(connection)
         print(f"Client lost({client_port})")
-        self.connections.remove(connection)
         connection.close()
 
     async def process_data(self, connection, data):
@@ -162,13 +166,8 @@ class PrimeServerAsync:
             print("Command type not recognised!")
 
     def shutdown(self):
-        self.close_connections()
         self.close_server_socket()
         self.update_state(ServerEvent.SHUTDOWN_EVT)
-
-    def close_connections(self):
-        for conn in self.connections:
-            conn.close()
 
     def close_server_socket(self):
         self.server_socket.close()
