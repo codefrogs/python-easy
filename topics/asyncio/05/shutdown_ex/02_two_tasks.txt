@@ -1,0 +1,6 @@
+This script runs two tasks.
+
+When the tasks finish, they remove themselves from the 'tasks' set.
+The results of both tasks are then printed.
+
+What we want to try next is to *cancel* the tasks.
