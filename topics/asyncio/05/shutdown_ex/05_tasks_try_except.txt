@@ -1,0 +1,9 @@
+In this script we have added a 'try...except' to do_calc.
+It now can finish more gracefully.
+
+Now when we await on the finished tasks we get the result we expected.
+
+However look at what happens when we do a CTRL-C.
+We get an exception again: KeyboardInterrupt.
+
+Let's handle that with signals in the next example.
