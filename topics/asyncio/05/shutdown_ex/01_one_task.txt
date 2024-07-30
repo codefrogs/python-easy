@@ -1,0 +1,4 @@
+This script runs a single task.
+
+When the task finishes, it removes itself from the 'tasks'.
+It then gets the result of the task, and prints it.
