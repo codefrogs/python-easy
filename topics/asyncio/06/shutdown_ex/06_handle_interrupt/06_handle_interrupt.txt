@@ -1,0 +1,16 @@
+In this script we have done the following:
+
+1. We have added signal handling.
+2. The signal handler closes all the tasks.
+
+So when CTRL-C is typed, we get a graceful shutdown.
+
+But there's one issue we have to explore.
+
+1. Although we have cancelled the tasks we created,
+   main() is still running. We want that to gracefully
+   shutdown too.
+   
+We'll see what we can do when main itself is perhaps
+blocking on some await function. We'll create the problem
+in the next script first.
