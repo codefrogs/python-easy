@@ -1,0 +1,19 @@
+So now we have a single handler, we want to show one possible
+problem. We want to see what we can do if our main function is
+blocking, in other words awaiting some IO operation.
+
+Try it out:
+1. Run the script.
+2. Try to CTRL-C to terminate it.
+
+It will cancel the tasks, but then 'wait in main' for 10 seconds
+effectively blocking the shutdown.
+
+Remember you can cancel a process with: 'kill -9 <ID>'
+
+Note: We are not trying to solve anything in this script. We
+are just demonstrating an issue.
+
+Let's take one step back, and return to one coroutine in the next
+script.
+
