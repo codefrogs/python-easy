@@ -5,6 +5,8 @@ import logging
 tasks = set()
 
 # This is some long running calculation.
+
+
 async def do_calc(symbol) -> int:
     try:
         i = 0
@@ -18,11 +20,14 @@ async def do_calc(symbol) -> int:
         logging.exception(e)
 
     finally:
-        # task clean up
+        task_name = asyncio.current_task().get_name()
+        print(f"Cleaning up task ({task_name})")
         return i
 
+
 def print_symbol(symbol):
-    print(symbol, end="", flush=True) # Return the result
+    print(symbol, end="", flush=True)  # Return the result
+
 
 async def main():
 
@@ -51,7 +56,7 @@ async def main():
 
     result = await task1
     print(f"Result(+): {result}")
-    
+
     result = await task2
     print(f"Result(*): {result}")
 
