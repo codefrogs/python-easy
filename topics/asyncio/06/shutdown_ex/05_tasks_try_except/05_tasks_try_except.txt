@@ -1,9 +1,15 @@
-In this script we have added a 'try...except' to do_calc.
-It now can finish more gracefully.
+In this script we have done the following:
 
-Now when we await on the finished tasks we get the result we expected.
+1. We have added a 'try...except' to do_calc.
+2. We have added logging to log exceptions.
 
-However look at what happens when we do a CTRL-C.
-We get an exception again: KeyboardInterrupt.
+It now can finish more gracefully, and log exceptions in
+the task, and handle them as we wish.
+
+So when tasks are awaited, we get the expected result.
+
+But here one problem with our example:
+
+1. When we do a CTRL-C, we get a KeyboardInterrupt exception.
 
 Let's handle that with signals in the next example.
