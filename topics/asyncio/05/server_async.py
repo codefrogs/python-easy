@@ -27,7 +27,7 @@ class ServerState(Enum):
 
 
 class PrimeServerAsync:
-    """Primer number server using async"""
+    """Prime number server using async"""
 
     LISTEN_TIMEOUT = 1  # If we use '0' here, we'll be maxing out the CPU again!
     BUFFER_LEN = 1024

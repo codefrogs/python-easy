@@ -25,7 +25,7 @@ class ServerState(Enum):
     SHUTDOWN_STATE         = auto()
 
 class PrimeServer:
-    """Primer number server"""
+    """Prime number server"""
 
     BUFFER_LEN = 1024
 

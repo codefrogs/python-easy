@@ -28,7 +28,7 @@ class ServerState(Enum):
     SHUTDOWN_STATE = auto()
 
 class PrimeServer:
-    """Primer number server"""
+    """Prime number server"""
 
     LISTEN_TIMEOUT = 1 # If we use '0' here, we'll be maxing out the CPU again!
     BUFFER_LEN = 1024
