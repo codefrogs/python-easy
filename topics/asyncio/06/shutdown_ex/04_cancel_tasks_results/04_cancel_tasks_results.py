@@ -5,19 +5,14 @@ tasks = set()
 
 # This is some long running calculation.
 async def do_calc(symbol) -> int:
-    try:
-        i = 0
-        while i < 20:
-            i += 1
-            print_symbol(symbol)
-            await asyncio.sleep(1)
+    i = 0
+    while i < 20:
+        i += 1
+        print_symbol(symbol)
+        await asyncio.sleep(1)
 
-        print()
-    except Exception as e:
-        pass
-
-    finally:
-        return i
+    print()
+    return i
 
 def print_symbol(symbol):
     print(symbol, end="", flush=True) # Return the result
@@ -45,15 +40,16 @@ async def main():
         task.cancel()
 
     print()
-    print("Tasks cancelled.")
+    print("Tasks cancelled.")    
 
     result = await task1
-    print(f"Result(+): {result}")
+    print(f"Result(+): {result}") #  We never get here!
     
-    result = await task2
-    print(f"Result(*): {result}")
+    result = await task2          #  We never get here!
+    print(f"Result(*): {result}") #  We never get here!
 
-    print("*** Finished ***")
+    await do_calc("@")            #  We never get here!
+    print("*** Finished ***")     #  We never get here!
 
 if __name__ == "__main__":
     asyncio.run(main())

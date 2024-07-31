@@ -1,0 +1,14 @@
+Shutdown example 04
+-------------------
+
+In this script we cancel all our tasks.
+But an exception is thrown: asyncio.exceptions.CancelledError
+
+When we wait on a task that has thrown an exception, it throws the exception!
+
+We could try to catch the exception at the await (at line 45) when we try to retrieve the 
+result, but we will instead catch the exception in 'do_calc' which gives the task
+the opportunity to finish up.
+
+Will try that out in the next example (05).
+

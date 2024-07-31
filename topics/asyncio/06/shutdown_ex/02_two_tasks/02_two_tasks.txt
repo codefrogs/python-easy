@@ -1,3 +1,6 @@
+Shutdown example 02
+-------------------
+
 This script runs two tasks.
 
 When the tasks finish, they remove themselves from the 'tasks' set.

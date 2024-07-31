@@ -1,18 +1,25 @@
 #!/usr/bin/env python3
 import asyncio
+import logging
 
 tasks = set()
 
 # This is some long running calculation.
 async def do_calc(symbol) -> int:
-    i = 0
-    while i < 20:
-        i += 1
-        print_symbol(symbol)
-        await asyncio.sleep(1)
+    try:
+        i = 0
+        while i < 20:
+            i += 1
+            print_symbol(symbol)
+            await asyncio.sleep(1)
 
-    print()
-    return i
+        print()
+    except Exception as e:
+        logging.exception(e)
+
+    finally:
+        # task clean up
+        return i
 
 def print_symbol(symbol):
     print(symbol, end="", flush=True) # Return the result
@@ -40,16 +47,15 @@ async def main():
         task.cancel()
 
     print()
-    print("Tasks cancelled.")    
+    print("Tasks cancelled.")
 
     result = await task1
-    print(f"Result(+): {result}") #  We never get here!
+    print(f"Result(+): {result}")
     
-    result = await task2            #  We never get here!
-    print(f"Result(*): {result}") #  We never get here!
+    result = await task2
+    print(f"Result(*): {result}")
 
-    await do_calc("@")              #  We never get here!
-    print("*** Finished ***")       #  We never get here!
+    print("*** Finished ***")
 
 if __name__ == "__main__":
     asyncio.run(main())

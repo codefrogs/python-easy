@@ -1,3 +1,6 @@
+Shutdown example 03
+-------------------
+
 In this script we cancel all our tasks.
 All seems fine, but let's look at the results when we print them
 in the next script.
