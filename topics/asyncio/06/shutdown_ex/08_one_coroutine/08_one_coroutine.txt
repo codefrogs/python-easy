@@ -1,0 +1,5 @@
+Our blocking main has now been fixed.
+
+When all the tasks have been cancelled, main gracefully exits.
+
+Armed with all this knowledge, let's return to our Prime Server!
