@@ -1,0 +1,5 @@
+README.txt
+
+This is a single process 'hello world' example.
+
+See also: https://docs.python.org/3/library/multiprocessing.html#the-process-class
