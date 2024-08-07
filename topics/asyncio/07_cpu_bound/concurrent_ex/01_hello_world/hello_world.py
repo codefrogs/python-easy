@@ -12,5 +12,6 @@ def main():
     p.start()
     p.join()
 
+# This is required!
 if __name__ == "__main__":
     main()
