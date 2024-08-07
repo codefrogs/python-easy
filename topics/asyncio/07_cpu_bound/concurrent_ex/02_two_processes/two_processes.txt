@@ -1,0 +1,11 @@
+README.txt
+
+We have run processes, and are one step closer to updating our PrimeServer.
+But we don't seem to be able to get any results from these method calls.
+
+Notice we need to check the name is 'main'. From the documentation it reads:
+
+"Make sure that the main module can be safely imported by a new Python interpreter without causing unintended side effects (such as starting a new process)."
+
+See: https://docs.python.org/3/library/multiprocessing.html#multiprocessing-programming
+
