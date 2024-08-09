@@ -17,15 +17,20 @@ from step_09 import globals
 server: Optional[PrimeServerAsync] = None
 
 
-# def run_prime_search(max):
-#     print("Searching primes...")
-#     prime_calculator = PrimeCalculator()
+class PrimeApp:
 
-#     while (globals.running.value == 1):
-#         time.sleep(1)
-#         prime_calculator.set_next_prime()
+    def init(self):
+        self.init_shares()
+        self.create_prime_server()
 
-#     print("Searching primes: STOPPED.", flush=True)
+    def init_shares(self):
+        globals.prime = Value('i', 0)  # We declare an integer with value zero.
+        globals.running = Value('B', 1)  # We declare an integer with value zero.
+
+    def create_prime_server(self):
+        global server
+        server = PrimeServerAsync()
+
 
 def run_prime_search(max):
     prime_calculator = PrimeCalculator()
@@ -72,7 +77,7 @@ def pause_one_second():
     time.sleep(1)
 
 
-def set_running_to_false():    
+def set_running_to_false():
     with globals.running.get_lock():
         globals.running.value = 0
         print(f"running: {globals.running.value}", flush=True)
@@ -91,8 +96,7 @@ def cancel_server():
     cancel_all(tasks)
 
 
-def is_running():
-    # global globals.running
+def is_running():    
     return globals.running.value == 1
 
 
@@ -106,20 +110,13 @@ def add_interrupt_handler():
     loop.add_signal_handler(signal.SIGINT, shutdown)
 
 
-def create_prime_server():
-    global server
-    server = PrimeServerAsync()
-
-
-def init_shares():
-    globals.prime = Value('i', 0)  # We declare an integer with value zero.
-    globals.running = Value('B', 1)  # We declare an integer with value zero.
-
-
 async def main():
 
-    init_shares()
-    create_prime_server()
+    app = PrimeApp()
+    app.init()
+
+    # init_shares()
+    # create_prime_server()
     add_interrupt_handler()
 
     try:
