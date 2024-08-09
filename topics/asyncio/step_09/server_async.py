@@ -17,15 +17,19 @@ from step_09 import globals
 server: Optional[PrimeServerAsync] = None
 
 
+# def run_prime_search(max):
+#     print("Searching primes...")
+#     prime_calculator = PrimeCalculator()
+
+#     while (globals.running.value == 1):
+#         time.sleep(1)
+#         prime_calculator.set_next_prime()
+
+#     print("Searching primes: STOPPED.", flush=True)
+
 def run_prime_search(max):
-    print("Searching primes...")
     prime_calculator = PrimeCalculator()
-
-    while (globals.running.value == 1):
-        time.sleep(1)
-        prime_calculator.set_next_prime()
-
-    print("Searching primes: STOPPED.", flush=True)
+    prime_calculator.run()
 
 
 async def run_prime_task(pool):

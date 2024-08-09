@@ -1,10 +1,20 @@
 from step_09 import globals
+import time
 
 
 class PrimeCalculator:
 
     def __init__(self):
         self.current_prime = 3
+
+    def run(self):
+        print("Searching primes...")
+
+        while (globals.running.value == 1):
+            time.sleep(1)
+            self.set_next_prime()
+
+        print("Searching primes: STOPPED.", flush=True)
 
     def find_next(self):
         num = self.current_prime
