@@ -22,14 +22,27 @@ class PrimeApp:
     def init(self):
         self.init_shares()
         self.create_prime_server()
+        self.add_interrupt_handler()
 
     def init_shares(self):
         globals.prime = Value('i', 0)  # We declare an integer with value zero.
-        globals.running = Value('B', 1)  # We declare an integer with value zero.
+        # We declare an integer with value zero.
+        globals.running = Value('B', 1)
 
     def create_prime_server(self):
         global server
         server = PrimeServerAsync()
+
+    def add_interrupt_handler(self):
+        loop = asyncio.get_running_loop()
+        loop.add_signal_handler(signal.SIGINT, self.shutdown)
+
+    def shutdown(self):
+        if self.is_running():  # Nothing to do for this process in the pool
+            cancel_server()
+
+    def is_running(self):
+        return globals.running.value == 1
 
 
 def run_prime_search(max):
@@ -96,28 +109,10 @@ def cancel_server():
     cancel_all(tasks)
 
 
-def is_running():    
-    return globals.running.value == 1
-
-
-def shutdown():
-    if is_running():  # Nothing to do for this process in the pool
-        cancel_server()
-
-
-def add_interrupt_handler():
-    loop = asyncio.get_running_loop()
-    loop.add_signal_handler(signal.SIGINT, shutdown)
-
-
 async def main():
 
     app = PrimeApp()
-    app.init()
-
-    # init_shares()
-    # create_prime_server()
-    add_interrupt_handler()
+    app.init()    
 
     try:
         await run_server()
