@@ -11,18 +11,18 @@ from enum import Enum, auto
 
 class ServerEvent(Enum):
     INITIALISED_EVT = auto()
-    SHUTDOWN_EVT = auto()
+    SHUTDOWN_EVT    = auto()
 
 
 class Command(Enum):
-    SHUTDOWN_CMD = auto()
+    SHUTDOWN_CMD  = auto()
     GET_PRIME_CMD = auto()
-    UNKNOWN_CMD = auto()
+    UNKNOWN_CMD   = auto()
 
 
 class ServerState(Enum):
-    NULL_STATE = auto()
-    RUNNING_STATE = auto()
+    NULL_STATE     = auto()
+    RUNNING_STATE  = auto()
     SHUTDOWN_STATE = auto()
 
 
