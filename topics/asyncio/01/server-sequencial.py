@@ -8,11 +8,13 @@ import socket
 from prime_calculator import PrimeCalculator
 from enum import Enum, auto
 
+
 class ServerEvent(Enum):
     INITIALISED_EVT = auto()
     LOST_CLIENT_EVT = auto()
     NEW_CLIENT_EVT  = auto()
     SHUTDOWN_EVT    = auto()
+
 
 class Command(Enum):
     NULL_CMD      = auto()
@@ -20,11 +22,13 @@ class Command(Enum):
     GET_PRIME_CMD = auto()
     UNKNOWN_CMD   = auto()
 
+
 class ServerState(Enum):
     NULL_STATE             = auto()
     LISTENING_STATE        = auto()
     CLIENT_CONNECTED_STATE = auto()
     SHUTDOWN_STATE         = auto()
+
 
 class PrimeServer:
     """Prime number server"""
@@ -153,10 +157,12 @@ class PrimeServer:
     def send_val_to_client(self, val):
         self.conn.sendall(val.to_bytes(4, byteorder='big'))
 
+
 def main():
     server = PrimeServer()
     server.run()
     print("Server finished.")
+
 
 if __name__ == "__main__":
     main()
