@@ -7,8 +7,8 @@ import time
 class PrimeClient:
     """Prime client"""
 
-    SLEEP_DELAY = 3 # Delay between each request.
-    PRIMES_NUM = 10 # Number of primes to get.
+    SLEEP_DELAY = 3  # Delay between each request.
+    PRIMES_NUM = 20  # Number of primes to get.
 
     def __init__(self):
         self.socket = None
@@ -17,12 +17,12 @@ class PrimeClient:
 
     def run(self):
         self.setup_socket()
-        self.connect_to_server()        
+        self.connect_to_server()
         self.get_primes()
         self.clean_up()
 
     def setup_socket(self):
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)       
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def connect_to_server(self):
         self.socket.connect((self.HOST, self.PORT))
@@ -32,24 +32,26 @@ class PrimeClient:
         for i in range(self.PRIMES_NUM):
             prime = self.get_prime()
             time.sleep(self.SLEEP_DELAY)
-            print(prime)            
+            print(prime)
 
     def get_prime(self):
         self.socket.sendall(b'get')
         data: bytes = self.socket.recv(4)  # Get value
         value: int = int.from_bytes(data, 'big')
-        return value 
+        return value
 
-    def clean_up(self):        
+    def clean_up(self):
         self.close_socket()
 
     def close_socket(self):
         self.socket.close()
 
+
 def main():
-    
+
     prime_client = PrimeClient()
     prime_client.run()
+
 
 if __name__ == "__main__":
     main()
