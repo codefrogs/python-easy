@@ -13,42 +13,46 @@ SelectorEvents = int  # e.g. EVENT_READ, EVENT_WRITE
 FileObjectInfo = tuple[selectors.SelectorKey, SelectorEvents]
 FileObjectInfoList = list[FileObjectInfo]
 
+
 class ServerEvent(Enum):
     INITIALISED_EVT = auto()
     SHUTDOWN_EVT    = auto()
+
 
 class Command(Enum):
     SHUTDOWN_CMD  = auto()
     GET_PRIME_CMD = auto()
     UNKNOWN_CMD   = auto()
 
+
 class ServerState(Enum):
     NULL_STATE     = auto()
-    RUNNING_STATE  = auto()    
+    RUNNING_STATE  = auto()
     SHUTDOWN_STATE = auto()
+
 
 class PrimeServer:
     """Prime number server"""
 
-    LISTEN_TIMEOUT = 1 # If we use '0' here, we'll be maxing out the CPU again!
+    LISTEN_TIMEOUT = 1  # If we use '0' here, we'll be maxing out the CPU again!
     BUFFER_LEN = 1024
     PORT_NUM_INDEX = 1
-    SELECT_TIMEOUT = 0 # => Non-blocking
+    SELECT_TIMEOUT = 0  # => Non-blocking
 
     def __init__(self):
         self.HOST = ''     # Symbolic name meaning all available interfaces
         self.PORT = 50007  # Arbitrary non-privileged port
         self.server_socket: socket.socket = None
         self.current_client: socket.socket = None
-        self.connections: list[socket.socket] = [] # Holds the connections
-        self.state = ServerState.NULL_STATE        
+        self.connections: list[socket.socket] = []  # Holds the connections
+        self.state = ServerState.NULL_STATE
         self.prime_calculator = PrimeCalculator()
         self.event_monitor = selectors.DefaultSelector()
-        
+
     def run(self):
         self.init()
 
-        while (self.state != ServerState.SHUTDOWN_STATE):            
+        while (self.state != ServerState.SHUTDOWN_STATE):
             self.run_processes()
             print()
 
@@ -92,19 +96,19 @@ class PrimeServer:
 
     def run_networking(self):
         print("Listening (blocking)..", end="", flush=True)
-        
+
         # Listen
-        socket_events = self.get_socket_events() # blocking
+        socket_events = self.get_socket_events()  # blocking
 
         if socket_events:
             for selector_key, _ in socket_events:
-                self.process_connection_event(selector_key.fileobj) 
+                self.process_connection_event(selector_key.fileobj)
 
     def get_socket_events(self) -> FileObjectInfoList:
         return self.event_monitor.select(timeout=self.LISTEN_TIMEOUT)
 
     def process_connection_event(self, connection):
-        if connection == self.server_socket: # If this server's socket
+        if connection == self.server_socket:  # If this server's socket
             self.process_new_client(connection)
         else:
             self.process_client(connection)
@@ -169,7 +173,7 @@ class PrimeServer:
         return cmd
 
     def process_command(self, cmd):
-        if (cmd == Command.SHUTDOWN_CMD):            
+        if (cmd == Command.SHUTDOWN_CMD):
             self.shutdown()
 
         elif (cmd == Command.GET_PRIME_CMD):
@@ -195,10 +199,12 @@ class PrimeServer:
     def send_val_to_client(self, val):
         self.current_client.sendall(val.to_bytes(4, byteorder='big'))
 
+
 def main():
     server = PrimeServer()
     server.run()
     print("Server finished.")
+
 
 if __name__ == "__main__":
     main()
