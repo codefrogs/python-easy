@@ -9,29 +9,22 @@ import time
 
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Value
-from typing import Optional
+
 from step_09 import PrimeServerAsync
 from step_09 import PrimeCalculator
 from step_09 import globals
 
-server: Optional[PrimeServerAsync] = None
+
+prime_calculator = None
 
 
-class PrimeApp:
+class InterruptHandler:
+
+    def __init__(self, server):
+        self.server = server
 
     def init(self):
-        self.init_shares()
-        self.create_prime_server()
         self.add_interrupt_handler()
-
-    def init_shares(self):
-        globals.prime = Value('i', 0)  # We declare an integer with value zero.
-        # We declare an integer with value zero.
-        globals.running = Value('B', 1)
-
-    def create_prime_server(self):
-        global server
-        server = PrimeServerAsync()
 
     def add_interrupt_handler(self):
         loop = asyncio.get_running_loop()
@@ -39,83 +32,97 @@ class PrimeApp:
 
     def shutdown(self):
         if self.is_running():  # Nothing to do for this process in the pool
-            cancel_server()
+            self.cancel_server()
 
     def is_running(self):
-        return globals.running.value == 1
+        return globals.prime_running.value == 1
+
+    def cancel_server(self):
+        # global server
+        print("\nShutting down...")
+
+        self.set_running_to_false()
+        self.server.cancel()
+
+        self.pause_one_second()  # Give any process, and task a chance to stop
+
+        tasks = asyncio.all_tasks()
+        self.cancel_prime_calc_task(tasks)
+        self.cancel_all(tasks)
+
+    def set_running_to_false(self):
+        with globals.prime_running.get_lock():
+            globals.prime_running.value = 0
+            print(f"running: {globals.prime_running.value}", flush=True)
+
+    def pause_one_second(self):
+        time.sleep(1)
+
+    def cancel_prime_calc_task(self, tasks):
+        for t in tasks:
+            if t.get_name() == "prime_task":
+                t.cancel()
+                tasks.remove(t)
+
+    def cancel_all(self, tasks):
+        for t in tasks:
+            t.cancel()
 
 
-def run_prime_search(max):
+def init_shares():
+    globals.prime = Value('i', 0)
+    globals.prime_running = Value('B', 1)
+
+
+def create_prime_server():
+    return PrimeServerAsync()
+
+
+def copy_globals_to_process(shared_prime, shared_running):
+    globals.prime = shared_prime
+    globals.prime_running = shared_running
+
+
+def create_prime_calculator():
+    global prime_calculator
     prime_calculator = PrimeCalculator()
+
+
+def run_prime_search():
     prime_calculator.run()
 
 
-async def run_prime_task(pool):
-    loop = asyncio.get_running_loop()
-    await loop.run_in_executor(pool, run_prime_search, 60)
+async def run_tasks(server):
+
+    with ProcessPoolExecutor(initializer=copy_globals_to_process,
+                             initargs=(globals.prime, globals.prime_running),
+                             max_workers=1) as pool:
+
+        prime_task = create_prime_task(pool)
+        server_task = server.run()
+
+        await asyncio.gather(prime_task, server_task)
 
 
 def create_prime_task(pool):
     return asyncio.create_task(run_prime_task(pool), name="task_prime")
 
 
-def copy_globals_to_process(shared_prime, shared_running):
-    globals.prime = shared_prime
-    globals.running = shared_running
-
-
-async def run_server():
-    global server
-    with ProcessPoolExecutor(initializer=copy_globals_to_process,
-                             initargs=(globals.prime, globals.running),
-                             max_workers=1) as pool:
-        prime_task = create_prime_task(pool)
-        server_task = server.run()
-        await asyncio.gather(prime_task, server_task)
-
-
-def cancel_all(tasks):
-    for t in tasks:
-        t.cancel()
-
-
-def cancel_prime_calc_task(tasks):
-    for t in tasks:
-        if t.get_name() == "prime_task":
-            t.cancel()
-            tasks.remove(t)  # Doing more than one thing! OHOH FIXME!
-
-
-def pause_one_second():
-    time.sleep(1)
-
-
-def set_running_to_false():
-    with globals.running.get_lock():
-        globals.running.value = 0
-        print(f"running: {globals.running.value}", flush=True)
-
-
-def cancel_server():
-    print("\nShutting down...")
-
-    set_running_to_false()
-    server.cancel()
-
-    pause_one_second()  # Give any process, and task a chance to stop
-
-    tasks = asyncio.all_tasks()
-    cancel_prime_calc_task(tasks)
-    cancel_all(tasks)
+async def run_prime_task(pool):
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(pool, run_prime_search)
 
 
 async def main():
+    init_shares()
+    server = create_prime_server()
+    create_prime_calculator()
 
-    app = PrimeApp()
-    app.init()    
+    interrupt_handler = InterruptHandler(server)
+    interrupt_handler.init()
 
     try:
-        await run_server()
+        await run_tasks(server)
         print("Server finished.")
 
     except asyncio.CancelledError:
