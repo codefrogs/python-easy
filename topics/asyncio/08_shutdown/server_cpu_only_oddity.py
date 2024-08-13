@@ -18,6 +18,7 @@ import os
 prime: Optional[Value] = None
 running: Optional[Value] = None
 
+
 def run_prime_search():
     global prime
     global running
@@ -30,12 +31,14 @@ def run_prime_search():
         with prime.get_lock():
             prime.value = prime_calculator.get_latest()
         print(".", flush=True, end='')
-        run +=1
+        run += 1
     print("Search stopped.")
+
 
 async def run_prime_task(pool):
     loop = asyncio.get_running_loop()
-    await loop.run_in_executor(pool, run_prime_search)    
+    await loop.run_in_executor(pool, run_prime_search)
+
 
 def init_global(shared_prime, shared_running):
     global prime
@@ -43,21 +46,25 @@ def init_global(shared_prime, shared_running):
     prime = shared_prime
     running = shared_running
 
+
 def info():
     print('module name:', __name__)
     print('parent process:', os.getppid())
-    print('process id:', os.getpid())    
+    print('process id:', os.getpid())
 
 # Oddly enough, this gets called multiple times on a CTRL-C interrupt!
 # Once for every process.
 # So the number of calls, is a function of the number of CPUs.
 # The number of calls = no. of CPUs + parent process.
+
+
 def shutdown():
     print("\nShutdown called!")
-    info()    
+    info()
     global running
     with running.get_lock():
         running.value = 0
+
 
 async def main():
     global prime
@@ -72,15 +79,16 @@ async def main():
     loop.add_signal_handler(signal.SIGINT, shutdown)
 
     try:
-        with ProcessPoolExecutor(initializer=init_global, initargs=(prime,running)) as pool:            
-            
-            prime_task = asyncio.create_task(run_prime_task(pool), name="task_prime")
-        
+        with ProcessPoolExecutor(initializer=init_global, initargs=(prime, running)) as pool:
+
+            prime_task = asyncio.create_task(
+                run_prime_task(pool), name="task_prime")
+
             await prime_task
 
         print("Server finished.")
 
-    except asyncio.CancelledError as e:        
+    except asyncio.CancelledError as e:
         print("Server cancelled.")
 
     except Exception as e:
