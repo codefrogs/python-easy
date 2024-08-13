@@ -4,6 +4,8 @@ import asyncio
 tasks = set()
 
 # This is some long running calculation.
+
+
 async def do_calc(symbol) -> int:
     i = 0
     while i < 20:
@@ -14,8 +16,10 @@ async def do_calc(symbol) -> int:
     print()
     return i
 
+
 def print_symbol(symbol):
-    print(symbol, end="", flush=True) # Return the result
+    print(symbol, end="", flush=True)  # Return the result
+
 
 async def main():
 
@@ -40,16 +44,16 @@ async def main():
         task.cancel()
 
     print()
-    print("Tasks cancelled.")    
+    print("Tasks cancelled.")
 
     result = await task1
-    print(f"Result(+): {result}") #  We never get here!
-    
-    result = await task2          #  We never get here!
-    print(f"Result(*): {result}") #  We never get here!
+    print(f"Result(+): {result}")  # We never get here!
 
-    await do_calc("@")            #  We never get here!
-    print("*** Finished ***")     #  We never get here!
+    result = await task2  # We never get here!
+    print(f"Result(*): {result}")  # We never get here!
+
+    await do_calc("@")  # We never get here!
+    print("*** Finished ***")  # We never get here!
 
 if __name__ == "__main__":
     asyncio.run(main())
