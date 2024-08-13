@@ -8,7 +8,7 @@ class PrimeClient:
     """Prime client"""
 
     SLEEP_DELAY = 3  # Delay between each request.
-    PRIMES_NUM = 10  # Number of primes to get.
+    PRIMES_NUM = 20  # Number of primes to get.
 
     def __init__(self):
         self.socket = None
