@@ -8,10 +8,12 @@ import socket
 from prime_calculator import PrimeCalculator
 from enum import Enum, auto
 
+
 class ServerEvent(Enum):
     INITIALISED_EVT = auto()
-    LOST_CLIENT_EVT = auto()    
+    LOST_CLIENT_EVT = auto()
     SHUTDOWN_EVT    = auto()
+
 
 class Command(Enum):
     NULL_CMD      = auto()
@@ -19,10 +21,12 @@ class Command(Enum):
     GET_PRIME_CMD = auto()
     UNKNOWN_CMD   = auto()
 
+
 class ServerState(Enum):
-    NULL_STATE             = auto()
-    LISTENING_STATE        = auto()    
-    SHUTDOWN_STATE         = auto()
+    NULL_STATE      = auto()
+    LISTENING_STATE = auto()
+    SHUTDOWN_STATE  = auto()
+
 
 class PrimeServer:
     """Prime number server"""
@@ -35,31 +39,31 @@ class PrimeServer:
         self.PORT = 50007  # Arbitrary non-privileged port
         self.socket = None
         self.current_client = None
-        self.connections = [] # Holds the connections
+        self.connections = []  # Holds the connections
         self.state = ServerState.NULL_STATE
-        self.prime_calculator = PrimeCalculator()        
+        self.prime_calculator = PrimeCalculator()
 
     def run(self):
 
-        while (self.state != ServerState.SHUTDOWN_STATE):            
+        while (self.state != ServerState.SHUTDOWN_STATE):
             self.run_processes()
             print()
 
-    def run_processes(self):        
+    def run_processes(self):
         self.run_prime_search()
-        self.run_next_process()        
+        self.run_next_process()
 
     def run_prime_search(self):
         print("Finding next prime..", end="")
         self.prime_calculator.find_next()
-        #print("Done.")
-        
-    def run_next_process(self):        
+        # print("Done.")
+
+    def run_next_process(self):
         if (self.state == ServerState.NULL_STATE):
             self.init()
 
         elif (self.state == ServerState.LISTENING_STATE):
-            self.listen_for_connection()        
+            self.listen_for_connection()
             self.serve_clients()
 
         elif (self.state == ServerState.SHUTDOWN_STATE):
@@ -67,7 +71,7 @@ class PrimeServer:
             pass  # No longer processing anything!
 
         else:
-            print("Unknown state!", self.state)        
+            print("Unknown state!", self.state)
 
     def init(self):
         print("init...", end="")
@@ -81,8 +85,8 @@ class PrimeServer:
 
     def setup_socket(self):
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.bind((self.HOST, self.PORT))    
-        self.socket.setblocking(False)    
+        self.socket.bind((self.HOST, self.PORT))
+        self.socket.setblocking(False)
 
     def update_state(self, event: ServerEvent):
 
@@ -94,30 +98,30 @@ class PrimeServer:
 
     def listen_for_connection(self):
         print("Listening (blocking)..", end="", flush=True)
-        
+
         try:
             # Enable listening
             self.socket.listen(1)
-            
-            connection, addr = self.socket.accept() # blocks
+
+            connection, addr = self.socket.accept()  # blocks
             connection.setblocking(False)
-            self.connections.append(connection)            
-            
+            self.connections.append(connection)
+
             self.show_connection(addr)
 
         except BlockingIOError:
             # We just ignore these failures!
             pass
-        #print("Done.")
+        # print("Done.")
 
     def show_connection(self, addr):
         print('Connected by', addr)
 
     def serve_clients(self):
-        for connection in self.connections:            
+        for connection in self.connections:
             self.serve_client(connection)
 
-    def serve_client(self, connection): 
+    def serve_client(self, connection):
         index = connection.getpeername()[self.PORT_NUM_INDEX]
         print(f"Serving client({index}).", end="")
         try:
@@ -134,13 +138,13 @@ class PrimeServer:
             # Just ignore failure to read
             pass
 
-        #print("Done")
+        # print("Done")
 
     def get_data(self):
         return self.current_client.recv(self.BUFFER_LEN)
 
     def remove_client(self):
-        print(f"Client lost: {self.current_client}")      
+        print(f"Client lost: {self.current_client}")
         self.current_client.close()
         self.connections.remove(self.current_client)
 
@@ -158,7 +162,7 @@ class PrimeServer:
         return cmd
 
     def process_command(self, cmd):
-        if (cmd == Command.SHUTDOWN_CMD):            
+        if (cmd == Command.SHUTDOWN_CMD):
             self.shutdown()
 
         elif (cmd == Command.GET_PRIME_CMD):
@@ -184,10 +188,12 @@ class PrimeServer:
     def send_val_to_client(self, val):
         self.current_client.sendall(val.to_bytes(4, byteorder='big'))
 
+
 def main():
     server = PrimeServer()
     server.run()
     print("Server finished.")
+
 
 if __name__ == "__main__":
     main()
