@@ -5,3 +5,6 @@ its CPU-bound activity.
 
 Firstly look at the examples in concurrent_ex.
 This will introduce processes and their use with the asyncio loop.
+
+Then come back here, and run the server and some clients.
+

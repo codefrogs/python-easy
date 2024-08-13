@@ -28,29 +28,32 @@ def run_prime_search(max):
         with prime.get_lock():
             prime.value = prime_calculator.get_latest()
         print(".")
-        run +=1
+        run += 1
+
 
 async def run_prime_task(pool):
     loop = asyncio.get_running_loop()
-    await loop.run_in_executor(pool, run_prime_search, 60)    
+    await loop.run_in_executor(pool, run_prime_search, 60)
+
 
 def init_global(shared_prime):
     global prime
     prime = shared_prime
 
+
 async def main():
-    global prime 
-    prime = Value('i', 0) # We declare an integer with value zero.
-    
+    global prime
+    prime = Value('i', 0)  # We declare an integer with value zero.
+
     try:
         with ProcessPoolExecutor(initializer=init_global, initargs=(prime,)) as pool:
             prime_task = asyncio.create_task(run_prime_task(pool), name="task_prime")
-        
+
             await prime_task
 
         print("Server finished.")
 
-    except asyncio.CancelledError as e:        
+    except asyncio.CancelledError as e:
         print("Server cancelled.")
 
     except Exception as e:

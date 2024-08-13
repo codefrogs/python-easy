@@ -2,6 +2,7 @@
 
 from multiprocessing import Pool
 
+
 def main():
     pool = Pool(1)
     print("Pool created")
@@ -10,9 +11,9 @@ def main():
     pool.terminate()
     print("Pool terminated")
 
-# This is how we can create a pool, but it's better 
-# with using a context manager.
+# This is how we can create a pool, but it's better
+# using a context manager.
+
 
 if __name__ == "__main__":
     main()
-

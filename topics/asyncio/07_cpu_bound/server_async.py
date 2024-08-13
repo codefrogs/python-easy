@@ -14,22 +14,25 @@ from enum import Enum, auto
 from typing import Optional
 import time
 
+
 class ServerEvent(Enum):
     INITIALISED_EVT = auto()
-    SHUTDOWN_EVT = auto()
+    SHUTDOWN_EVT    = auto()
+
 
 class Command(Enum):
-    SHUTDOWN_CMD = auto()
+    SHUTDOWN_CMD  = auto()
     GET_PRIME_CMD = auto()
-    UNKNOWN_CMD = auto()
+    UNKNOWN_CMD   = auto()
+
 
 class ServerState(Enum):
-    NULL_STATE = auto()
-    RUNNING_STATE = auto()
+    NULL_STATE     = auto()
+    RUNNING_STATE  = auto()
     SHUTDOWN_STATE = auto()
 
-prime: Optional[Value] = None
 
+prime: Optional[Value] = None
 
 
 class PrimeServerAsync:
@@ -45,13 +48,13 @@ class PrimeServerAsync:
         self.PORT = 50007  # Arbitrary non-privileged port
         self.server_socket: socket.socket = None
         self.current_client: socket.socket = None
-        self.state = ServerState.NULL_STATE        
+        self.state = ServerState.NULL_STATE
         self.event_loop: asyncio.AbstractEventLoop = None
         self.tasks = set()
 
     async def run(self):
         self.init()
-        
+
         while (self.state != ServerState.SHUTDOWN_STATE):
             await self.run_networking()
 
@@ -95,7 +98,7 @@ class PrimeServerAsync:
             self.state = ServerState.SHUTDOWN_STATE
 
     def add_task(self, task):
-        self.tasks.add(task)        
+        self.tasks.add(task)
         task.add_done_callback(self.tasks.discard)
 
     async def run_networking(self):
@@ -145,14 +148,14 @@ class PrimeServerAsync:
         if not data:
             self.report_lost_client(connection)
             self.close_connection(connection)
-            
+
             return False  # => Lost the client
         else:
             await self.process_data(connection, data)
 
         return True
 
-    def close_connection(self, connection):        
+    def close_connection(self, connection):
         connection.close()
 
     def report_lost_client(self, connection):
@@ -192,12 +195,13 @@ class PrimeServerAsync:
         self.server_socket.close()
 
     async def send_client_prime(self, connection):
-        global prime        
+        global prime
         await self.send_val_to_client(connection, prime.value)
 
     async def send_val_to_client(self, connection, val):
         data = val.to_bytes(4, byteorder='big')
         await self.event_loop.sock_sendall(connection, data)
+
 
 def run_prime_search(max):
     global prime
@@ -208,32 +212,35 @@ def run_prime_search(max):
         time.sleep(1)
         prime_calculator.find_next()
         with prime.get_lock():
-            prime.value = prime_calculator.get_latest()        
-        run +=1
+            prime.value = prime_calculator.get_latest()
+        run += 1
+
 
 async def run_prime_task(pool):
     loop = asyncio.get_running_loop()
-    await loop.run_in_executor(pool, run_prime_search, 60)    
+    await loop.run_in_executor(pool, run_prime_search, 60)
+
 
 def init_global(shared_prime):
     global prime
     prime = shared_prime
 
+
 async def main():
-    global prime 
-    prime = Value('i', 0) # We declare an integer with value zero.
-    
+    global prime
+    prime = Value('i', 0)  # We declare an integer with value zero.
+
     try:
         with ProcessPoolExecutor(initializer=init_global, initargs=(prime,)) as pool:
             prime_task = asyncio.create_task(run_prime_task(pool), name="task_prime")
-        
+
             server = PrimeServerAsync()
             server_task = await server.run()
-            asyncio.gather(prime_task, server_task)            
+            asyncio.gather(prime_task, server_task)
 
         print("Server finished.")
 
-    except asyncio.CancelledError as e:        
+    except asyncio.CancelledError as e:
         print("Server cancelled.")
 
     except Exception as e:

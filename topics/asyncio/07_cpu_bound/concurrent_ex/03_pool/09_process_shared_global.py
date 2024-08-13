@@ -15,27 +15,31 @@ sum: Optional[Value] = None
 # process.
 # Now the child process has a reference to the 'cnt' variable from the main process.
 # So each process will not operate on the *same* sum value.
+
+
 def init(shared: Value):
     global sum
     sum = shared
+
 
 def count(max: int) -> int:
     global sum
     with sum.get_lock():
         for i in range(max):
-            sum.value += 1               
+            sum.value += 1
     # return sum # You can't do this as 'Value' is not serialisable.
 
+
 def main():
-    COUNT_MAX=20
+    COUNT_MAX = 20
 
     # We have to declare this to be global (no local)
-    global sum 
-    sum = Value('i', 0) # We declare an integer with value zero.
-    
+    global sum
+    sum = Value('i', 0)  # We declare an integer with value zero.
+
     with ProcessPoolExecutor(initializer=init, initargs=(sum,)) as pool:
-      future_object = pool.submit(count, COUNT_MAX) # One process      
-      future_object.result() # blocks until we get the result.
+        future_object = pool.submit(count, COUNT_MAX)  # One process
+        future_object.result()  # blocks until we get the result.
 
     print(f"Total: {sum.value}")
 
@@ -43,6 +47,7 @@ def main():
     # asyncio to this?
     # We want to use the event loop to do some I/O function and run the
     # count function.
-    
+
+
 if __name__ == "__main__":
     main()
