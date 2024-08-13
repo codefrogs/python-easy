@@ -23,7 +23,7 @@ class InterruptHandler:
         loop.add_signal_handler(signal.SIGINT, self.shutdown)
 
     def shutdown(self):
-        if self.is_running():  # Nothing to do for this process in the pool
+        if self.is_running():  # else nothing to do for this process in the pool.
             self.cancel_server()
 
     def is_running(self):
