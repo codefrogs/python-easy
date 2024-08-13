@@ -10,9 +10,9 @@ import time
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Value
 
-from step_09 import PrimeServerAsync
-from step_09 import PrimeCalculator
-from step_09 import globals
+from step_09_cleanup import PrimeServerAsync
+from step_09_cleanup import PrimeCalculator
+from step_09_cleanup import globals
 
 
 class InterruptHandler:

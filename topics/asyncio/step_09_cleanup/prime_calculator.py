@@ -1,4 +1,4 @@
-from step_09 import globals
+from step_09_cleanup import globals
 import time
 
 

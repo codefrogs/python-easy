@@ -2,7 +2,7 @@ import asyncio
 import socket
 import logging
 from enum import Enum, auto
-from step_09 import globals
+from step_09_cleanup import globals
 
 
 class ServerEvent(Enum):
