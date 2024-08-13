@@ -13,18 +13,18 @@ from enum import Enum, auto
 
 class ServerEvent(Enum):
     INITIALISED_EVT = auto()
-    SHUTDOWN_EVT = auto()
+    SHUTDOWN_EVT    = auto()
 
 
 class Command(Enum):
-    SHUTDOWN_CMD = auto()
+    SHUTDOWN_CMD  = auto()
     GET_PRIME_CMD = auto()
-    UNKNOWN_CMD = auto()
+    UNKNOWN_CMD   = auto()
 
 
 class ServerState(Enum):
-    NULL_STATE = auto()
-    RUNNING_STATE = auto()
+    NULL_STATE     = auto()
+    RUNNING_STATE  = auto()
     SHUTDOWN_STATE = auto()
 
 
@@ -78,8 +78,7 @@ class PrimeServerAsync:
 
     def setup_event_loop(self):
         self.event_loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
-        self.event_loop.add_signal_handler(
-            signal.SIGINT, self.handle_interrupt)
+        self.event_loop.add_signal_handler(signal.SIGINT, self.handle_interrupt)
 
     def handle_interrupt(self):
         print()
@@ -107,13 +106,13 @@ class PrimeServerAsync:
 
         except asyncio.CancelledError as e:
             print("Prime search cancelled.")
-            #logging.exception(e)
+            # logging.exception(e)
 
         except Exception as e:
             logging.exception(e)
 
     def add_task(self, task):
-        self.tasks.add(task)        
+        self.tasks.add(task)
         task.add_done_callback(self.tasks.discard)
 
     async def run_networking(self):
@@ -163,14 +162,14 @@ class PrimeServerAsync:
         if not data:
             self.report_lost_client(connection)
             self.close_connection(connection)
-            
+
             return False  # => Lost the client
         else:
             await self.process_data(connection, data)
 
         return True
 
-    def close_connection(self, connection):        
+    def close_connection(self, connection):
         connection.close()
 
     def report_lost_client(self, connection):
@@ -224,7 +223,7 @@ async def main():
         await server.run()
         print("Server finished.")
 
-    except asyncio.CancelledError as e:        
+    except asyncio.CancelledError as e:
         print("Server cancelled.")
 
     except Exception as e:
