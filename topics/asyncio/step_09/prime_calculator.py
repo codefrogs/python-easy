@@ -10,8 +10,8 @@ class PrimeCalculator:
     def run(self):
         print("Searching primes...")
 
-        while (globals.running.value == 1):
-            time.sleep(1)
+        while (globals.prime_running.value == 1):
+            time.sleep(0.1)
             self.set_next_prime()
 
         print("Searching primes: STOPPED.", flush=True)
