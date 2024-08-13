@@ -19,11 +19,6 @@ class InterruptHandler:
 
     def __init__(self, server):
         self.server = server
-
-    def init(self):
-        self.add_interrupt_handler()
-
-    def add_interrupt_handler(self):
         loop = asyncio.get_running_loop()
         loop.add_signal_handler(signal.SIGINT, self.shutdown)
 
@@ -55,10 +50,10 @@ class InterruptHandler:
         time.sleep(1)
 
     def cancel_prime_calc_task(self, tasks):
-        for t in tasks:
-            if t.get_name() == "prime_task":
-                t.cancel()
-                tasks.remove(t)
+        for task in tasks:
+            if task.get_name() == "prime_task":
+                task.cancel()
+                tasks.remove(task)
 
     def cancel_all(self, tasks):
         for t in tasks:
@@ -105,8 +100,7 @@ async def main():
     server = PrimeServerAsync()
     prime_calculator = PrimeCalculator()
 
-    interrupt_handler = InterruptHandler(server)
-    interrupt_handler.init()
+    InterruptHandler(server)
 
     try:
         await run_tasks(server, prime_calculator)
