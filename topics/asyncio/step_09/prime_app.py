@@ -15,9 +15,6 @@ from step_09 import PrimeCalculator
 from step_09 import globals
 
 
-prime_calculator = None
-
-
 class InterruptHandler:
 
     def __init__(self, server):
@@ -38,7 +35,6 @@ class InterruptHandler:
         return globals.prime_running.value == 1
 
     def cancel_server(self):
-        # global server
         print("\nShutting down...")
 
         self.set_running_to_false()
@@ -69,13 +65,17 @@ class InterruptHandler:
             t.cancel()
 
 
-def init_shares():
-    globals.prime = Value('i', 0)
-    globals.prime_running = Value('B', 1)
+def run_prime_search(prime_calculator):
+    prime_calculator.run()
 
 
-def create_prime_server():
-    return PrimeServerAsync()
+async def run_prime_task(pool, prime_calculator):
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(pool, run_prime_search, prime_calculator)
+
+
+def create_prime_task(pool, prime_calculator):
+    return asyncio.create_task(run_prime_task(pool, prime_calculator), name="task_prime")
 
 
 def copy_globals_to_process(shared_prime, shared_running):
@@ -83,46 +83,33 @@ def copy_globals_to_process(shared_prime, shared_running):
     globals.prime_running = shared_running
 
 
-def create_prime_calculator():
-    global prime_calculator
-    prime_calculator = PrimeCalculator()
-
-
-def run_prime_search():
-    prime_calculator.run()
-
-
-async def run_tasks(server):
+async def run_tasks(server, prime_calculator):
 
     with ProcessPoolExecutor(initializer=copy_globals_to_process,
                              initargs=(globals.prime, globals.prime_running),
                              max_workers=1) as pool:
 
-        prime_task = create_prime_task(pool)
+        prime_task = create_prime_task(pool, prime_calculator)
         server_task = server.run()
 
         await asyncio.gather(prime_task, server_task)
 
 
-def create_prime_task(pool):
-    return asyncio.create_task(run_prime_task(pool), name="task_prime")
-
-
-async def run_prime_task(pool):
-    loop = asyncio.get_running_loop()
-    await loop.run_in_executor(pool, run_prime_search)
+def init_shares():
+    globals.prime = Value('i', 0)
+    globals.prime_running = Value('B', 1)
 
 
 async def main():
     init_shares()
-    server = create_prime_server()
-    create_prime_calculator()
+    server = PrimeServerAsync()
+    prime_calculator = PrimeCalculator()
 
     interrupt_handler = InterruptHandler(server)
     interrupt_handler.init()
 
     try:
-        await run_tasks(server)
+        await run_tasks(server, prime_calculator)
         print("Server finished.")
 
     except asyncio.CancelledError:
